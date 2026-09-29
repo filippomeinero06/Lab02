@@ -5,7 +5,7 @@ def carica_da_file(file_path):
 
     try:
         infile = open(file_path, "r")
-        line = infile.readline() # leggo l'intestazione
+        _ = infile.readline() # leggo l'intestazione
 
         for line in infile:
             campi = line.strip().split(',') # pulisco la riga dai caratteri come \n finale e la splitto
@@ -18,22 +18,53 @@ def carica_da_file(file_path):
             foto = {cod: [titolo, autore, mese, anno]}
 
             if anno not in list(album.keys()):
-                album[anno] = []
-
-            album[anno].append(foto)
-
+                album[anno] = [foto]
+            else:
+                album[anno].append(foto)
 
     except FileNotFoundError:
         return None
     finally:
-        infile.close()
+        if infile is not None:
+            infile.close()
     return album
 
 
 
 def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
     """Aggiunge una foto all'album, creando l'anno al volo se non è ancora presente"""
-    # TODO
+
+    # controllo codice già presente
+    codici = [] # lista che contiene tutti i codici delle varie foto presenti nell'album
+    photos = list(album.values()) # lista di liste
+
+    for i in range(len(photos)):
+        for j in range(len(photos[i])):
+            codici.append(list(photos[i][j].keys())[0])
+
+    if (codice not in codici) and (1 <= mese <= 12):
+        # update del file
+        outfile = None
+        try:
+            outfile = open(file_path, "a") # aperto in append per non sovrascrivere il contenuto
+            outfile.write(f"{codice},{titolo},{autore},{mese},{anno}\n")
+        except FileNotFoundError:
+            return None
+        finally:
+            if outfile is not None:
+                outfile.close()
+
+        # update dell'album
+        foto = {codice:[titolo,autore,mese,anno]}
+        if anno not in list(album.keys()):
+            album[anno] = [foto]
+        else:
+            album[anno].append(foto)
+
+        return foto
+
+    else:
+        return None
 
 
 def cerca_foto(album, codice):
@@ -47,7 +78,8 @@ def elenco_foto_anno_per_titolo(album, anno):
 
 
 def main():
-    #file_path = "album_fotografico.csv"
+    album = []
+    file_path = "album_fotografico.csv"
 
     while True:
         print("\n--- MENU ALBUM FOTOGRAFICO ---")
