@@ -1,6 +1,34 @@
 def carica_da_file(file_path):
     """Carica le foto dal file, creando un nuovo anno ogni volta che compare per la prima volta"""
-    # TODO
+    album = {} # come chiave ha l'anno e come valore ha una lista di dizionari di liste che ha come chiave il codice univoco delle foto e come valore un alista contenente tutti i campi delle foto
+    infile = None # inizializzo all'inizio perché altrimenti nel finally, se veniva sollevata l'eccezione, non poteva chiudere il file perché infile non veniva mai creata
+
+    try:
+        infile = open(file_path, "r")
+        line = infile.readline() # leggo l'intestazione
+
+        for line in infile:
+            campi = line.strip().split(',') # pulisco la riga dai caratteri come \n finale e la splitto
+            cod = campi[0]
+            titolo = campi[1]
+            autore = campi[2]
+            mese = campi[3]
+            anno = campi[4]
+
+            foto = {cod: [titolo, autore, mese, anno]}
+
+            if anno not in list(album.keys()):
+                album[anno] = []
+
+            album[anno].append(foto)
+
+
+    except FileNotFoundError:
+        return None
+    finally:
+        infile.close()
+    return album
+
 
 
 def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
@@ -19,8 +47,7 @@ def elenco_foto_anno_per_titolo(album, anno):
 
 
 def main():
-    album = []
-    file_path = "album_fotografico.csv"
+    #file_path = "album_fotografico.csv"
 
     while True:
         print("\n--- MENU ALBUM FOTOGRAFICO ---")
