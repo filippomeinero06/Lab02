@@ -13,7 +13,7 @@ def carica_da_file(file_path):
             titolo = campi[1]
             autore = campi[2]
             mese = campi[3]
-            anno = campi[4]
+            anno = int(campi[4])
 
             foto = {cod: [titolo, autore, mese, anno]}
 
@@ -98,7 +98,18 @@ def cerca_foto(album, codice):
 
 def elenco_foto_anno_per_titolo(album, anno):
     """Ordina i titoli delle foto di un dato anno in ordine alfabetico"""
-    # TODO
+    titoli = []
+    anni = list(album.keys())
+
+    if anno not in anni:
+        return None
+    else:
+        photos_anno = album[anno]
+        for foto in photos_anno:
+            titoli.append(list(foto.values())[0][0])
+
+        titoli_sorted = sorted(titoli)
+        return titoli_sorted
 
 
 def main():
