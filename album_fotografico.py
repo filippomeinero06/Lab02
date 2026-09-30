@@ -40,6 +40,11 @@ def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
 
     for i in range(len(photos)):
         for j in range(len(photos[i])):
+            # photos[i][j]                 è un dizionario che rappresenta una foto
+            # photos[i][j].keys()          mi estraggo la chiave --> che rarebbe il codice della foto
+            # list(photos[i][j].keys())    lo converto in lista perché altrimenti sarebbe di tipo <class 'dict_keys'>
+            # list(photos[i][j].keys())[0] estraggo il primo elemento della lista (che è anche l'unico) solo per averlo come valore
+            # convertire direttamente la chiave in int da errore perché non può farlo
             codici.append(list(photos[i][j].keys())[0])
 
     if (codice not in codici) and (1 <= mese <= 12):
@@ -69,7 +74,26 @@ def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
 
 def cerca_foto(album, codice):
     """Cerca una foto nell'album dato il codice"""
-    # TODO
+    codici = []  # lista che contiene tutti i codici delle varie foto presenti nell'album
+    photos = list(album.values())  # lista di liste
+
+    for i in range(len(photos)):
+        for j in range(len(photos[i])):
+            codici.append(list(photos[i][j].keys())[0])
+
+    for i in range(len(photos)):
+        for j in range(len(photos[i])):
+            if list(photos[i][j].keys())[0] == codice: # se il codice combacia estraggo i parametri della foto da returnare
+                # doppio indice perché convertendo i valori da dict_values a list (i valori sono già dentro una lista
+                # quindi il primo indice [0] indica quella lista interna all'interno di quella esterna, mentre il secondo indice [0] indica
+                # quale elemento prendere all'interno della lista interna
+                titolo = list(photos[i][j].values())[0][0]
+                autore = list(photos[i][j].values())[0][1]
+                mese = list(photos[i][j].values())[0][2]
+                anno = list(photos[i][j].values())[0][3]
+                return f"{codice}, {titolo}, {autore}, {mese}, {anno}"
+    return None
+
 
 
 def elenco_foto_anno_per_titolo(album, anno):
