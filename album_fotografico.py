@@ -1,6 +1,10 @@
 def carica_da_file(file_path):
     """Carica le foto dal file, creando un nuovo anno ogni volta che compare per la prima volta"""
-    album = {} # come chiave ha l'anno e come valore ha una lista di dizionari di liste che ha come chiave il codice univoco delle foto e come valore un alista contenente tutti i campi delle foto
+    album = {} # come chiave ha l'anno e come valore ha una lista di dizionari (le foto) di liste che ha come chiave il codice univoco delle foto e come valore una lista contenente tutti i campi delle foto
+    # {2021:[{"P002":["Montagne innevate", "Marco Bruni", 1, 2021]},
+    #        {"P005":["...", "...", x, x]}],
+    #  2025:[{"P007":["...", "...", x, x]}] }
+
     infile = None # inizializzo all'inizio perché altrimenti nel finally, se veniva sollevata l'eccezione, non poteva chiudere il file perché infile non veniva mai creata
 
     try:
@@ -12,7 +16,7 @@ def carica_da_file(file_path):
             cod = campi[0]
             titolo = campi[1]
             autore = campi[2]
-            mese = campi[3]
+            mese = int(campi[3])
             anno = int(campi[4])
 
             foto = {cod: [titolo, autore, mese, anno]}
@@ -44,24 +48,35 @@ def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
             # photos[i][j].keys()          mi estraggo la chiave --> che rarebbe il codice della foto
             # list(photos[i][j].keys())    lo converto in lista perché altrimenti sarebbe di tipo <class 'dict_keys'>
             # list(photos[i][j].keys())[0] estraggo il primo elemento della lista (che è anche l'unico) solo per averlo come valore
-            # convertire direttamente la chiave in int da errore perché non può farlo
+            # convertire direttamente la chiave in intero (al posto di convertire in lista ed estrarre il valore) da errore perché non può farlo
             codici.append(list(photos[i][j].keys())[0])
 
     if (codice not in codici) and (1 <= mese <= 12):
+        # 1) controllo che il file esista
+        file_test = None
+        try: # prima provo ad aprire il file in "r" solo per vedere se esiste o no
+             # se apro il file in "a", se questo non esiste python lo crea e quindi non posso restituire None se il file non esiste (come richiede la traccia)
+            file_test = open(file_path, "r")
+        except FileNotFoundError:
+            return None
+        finally:
+            if file_test is not None:
+                file_test.close()
+
+        # 2) scrivo effettivamente nel file esistente
         # update del file
         outfile = None
         try:
             outfile = open(file_path, "a") # aperto in append per non sovrascrivere il contenuto
             outfile.write(f"{codice},{titolo},{autore},{mese},{anno}\n")
-        except FileNotFoundError:
-            return None
+        # non c'è il blocco except perché che il file esista viene controllato all'inizio della funzione
         finally:
             if outfile is not None:
                 outfile.close()
 
         # update dell'album
         foto = {codice:[titolo,autore,mese,anno]}
-        if anno not in list(album.keys()):
+        if anno not in list(album.keys()): # se l'anno della foto non è già presente nell'album lo crea al volo
             album[anno] = [foto]
         else:
             album[anno].append(foto)
@@ -74,17 +89,12 @@ def aggiungi_foto(album, codice, titolo, autore, mese, anno, file_path):
 
 def cerca_foto(album, codice):
     """Cerca una foto nell'album dato il codice"""
-    codici = []  # lista che contiene tutti i codici delle varie foto presenti nell'album
     photos = list(album.values())  # lista di liste
 
     for i in range(len(photos)):
         for j in range(len(photos[i])):
-            codici.append(list(photos[i][j].keys())[0])
-
-    for i in range(len(photos)):
-        for j in range(len(photos[i])):
             if list(photos[i][j].keys())[0] == codice: # se il codice combacia estraggo i parametri della foto da returnare
-                # doppio indice perché convertendo i valori da dict_values a list (i valori sono già dentro una lista
+                # doppio indice perché convertendo i valori da dict_values a list (i valori sono già dentro una lista)
                 # quindi il primo indice [0] indica quella lista interna all'interno di quella esterna, mentre il secondo indice [0] indica
                 # quale elemento prendere all'interno della lista interna
                 titolo = list(photos[i][j].values())[0][0]
@@ -106,7 +116,8 @@ def elenco_foto_anno_per_titolo(album, anno):
     else:
         photos_anno = album[anno]
         for foto in photos_anno:
-            titoli.append(list(foto.values())[0][0])
+            titoli.append(list(foto.values())[0][0]) # doppio indice perchéa abbiamo una lista con una lista interna con i parametri della foto
+            # [["titolo", "autore", mese, anno]]
 
         titoli_sorted = sorted(titoli)
         return titoli_sorted
